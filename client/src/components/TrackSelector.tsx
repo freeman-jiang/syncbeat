@@ -1,3 +1,4 @@
+"use client";
 import {
   Select,
   SelectContent,
@@ -5,15 +6,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useAudioSources } from "@/context/audiosources";
+import { useGlobalStore } from "@/store/global";
 
 export const TrackSelector = () => {
-  const {
-    audioSources,
-    isLoadingAudioSources,
-    selectedSourceIndex,
-    setSelectedSourceIndex,
-  } = useAudioSources();
+  const audioSources = useGlobalStore((state) => state.audioSources);
+  const selectedSourceIndex = useGlobalStore(
+    (state) => state.selectedSourceIndex
+  );
+  const setSelectedSourceIndex = useGlobalStore(
+    (state) => state.setSelectedSourceIndex
+  );
+  const isLoadingAudioSources = useGlobalStore(
+    (state) => state.isLoadingAudioSources
+  );
 
   return (
     <div className="mt-4 mb-4">

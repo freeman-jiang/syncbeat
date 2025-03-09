@@ -8,12 +8,12 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { Label } from "@/components/ui/label";
-import { useRoom } from "@/context/room";
 import {
   createUserId,
   validateFullRoomId,
   validatePartialRoomId,
 } from "@/lib/room";
+import { useRoomStore } from "@/store/room";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -26,7 +26,10 @@ interface JoinFormData {
 export const Join = () => {
   const [isJoining, setIsJoining] = useState(false);
   const usernameInputRef = useRef<HTMLInputElement>(null);
-  const { setRoomId, setUsername, setUserId } = useRoom();
+  // const { setRoomId, setUsername, setUserId } = useRoom();
+  const setRoomId = useRoomStore((state) => state.setRoomId);
+  const setUsername = useRoomStore((state) => state.setUsername);
+  const setUserId = useRoomStore((state) => state.setUserId);
 
   const {
     register,
