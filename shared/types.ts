@@ -1,51 +1,71 @@
-export enum Action {
-  Play = "play",
-  Pause = "pause",
-  Join = "join",
-  NTPRequest = "ntp_request",
-  NTPResponse = "ntp_response",
-  NewAudioSource = "new_audio_source",
-}
+import { z } from "zod";
 
-// Audio source information
-export interface AudioSource {
-  id: string;
-  title: string;
-  url: string;
-  duration: number;
-  thumbnail?: string;
-  addedAt: number;
-}
+export const ClientActionEnum = z.enum([
+  "PLAY",
+  "PAUSE",
+  "JOIN",
+  "NTP_REQUEST",
+  "NEW_AUDIO_SOURCE",
+]);
+export type ClientAction = z.infer<typeof ClientActionEnum>;
 
-export interface ClientMessage {
-  type: Action;
-}
+// Actions that are different from the echoing of client actions
+export const ServerActionEnum = z.enum(["NTP_RESPONSE"]);
 
-export interface NTPRequestMessage extends ClientMessage {
-  type: Action.NTPRequest;
-  t0: number; // Client send timestamp
-}
+export const AudioSourceSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  url: z.string().url(),
+  duration: z.number().positive(),
+  thumbnail: z.string().url().optional(),
+  addedAt: z.number(),
+});
 
-export interface BaseServerMessage {
-  type: Action;
-  timestamp: number; // Timestamp to take action at
-  serverTime: number; // Server time
-}
+export type AudioSource = z.infer<typeof AudioSourceSchema>;
 
-export interface NTPResponseMessage {
-  type: Action.NTPResponse;
-  t0: number; // Client send timestamp (echoed back)
-  t1: number; // Server receive timestamp
-  t2: number; // Server send timestamp
-}
+export const ClientMessageSchema = z.object({
+  type: ClientActionEnum,
+});
 
-// New message type for audio source notification
-export interface NewAudioSourceMessage extends BaseServerMessage {
-  type: Action.NewAudioSource;
-  source: AudioSource;
-}
+export const NTPRequestMessageSchema = ClientMessageSchema.extend({
+  type: z.literal(ClientActionEnum.enum.NTP_REQUEST),
+  t0: z.number(), // Client send timestamp
+});
 
-export type ServerMessage =
-  | BaseServerMessage
-  | NTPResponseMessage
-  | NewAudioSourceMessage;
+export const PlayActionSchema = z.object({
+  type: z.literal(ClientActionEnum.enum.PLAY),
+  time: z.number(),
+  trackIndex: z.number(),
+});
+
+export const NTPResponseMessageSchema = z.object({
+  type: z.literal(ServerActionEnum.enum.NTP_RESPONSE),
+  t0: z.number(), // Client send timestamp (echoed back)
+  t1: z.number(), // Server receive timestamp
+  t2: z.number(), // Server send timestamp
+});
+
+export const NewAudioSourceMessageSchema = z.object({
+  type: z.literal(ClientActionEnum.enum.NEW_AUDIO_SOURCE),
+  source: AudioSourceSchema,
+});
+
+const JoinMessageSchema = z.object({
+  type: z.literal(ClientActionEnum.enum.JOIN),
+  username: z.string(),
+  userId: z.string(),
+});
+
+export const ServerMessageSchema = z.discriminatedUnion("type", [
+  PlayActionSchema,
+  NTPResponseMessageSchema,
+  NewAudioSourceMessageSchema,
+  JoinMessageSchema,
+]);
+
+export type ClientMessage = z.infer<typeof ClientMessageSchema>;
+export type NTPRequestMessage = z.infer<typeof NTPRequestMessageSchema>;
+export type PlayActionMessage = z.infer<typeof PlayActionSchema>;
+export type NTPResponseMessage = z.infer<typeof NTPResponseMessageSchema>;
+export type NewAudioSourceMessage = z.infer<typeof NewAudioSourceMessageSchema>;
+export type ServerMessage = z.infer<typeof ServerMessageSchema>;

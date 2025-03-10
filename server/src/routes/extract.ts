@@ -1,5 +1,10 @@
 // import * as ytdl from "@distube/ytdl-core";
-import { Action, AudioSource } from "@shared/types";
+import {
+  ClientAction,
+  ClientActionEnum,
+  AudioSource,
+  ServerMessage,
+} from "@shared/types";
 import { randomUUIDv7, Server } from "bun";
 import { existsSync, mkdirSync } from "fs";
 import * as path from "path";
@@ -100,10 +105,8 @@ export const handleExtract = async (req: Request, server: Server) => {
 
     // Notify all clients in the room about the new audio source
     console.log(`Notifying clients in room ${roomId} about new audio`);
-    const message = {
-      type: Action.NewAudioSource,
-      timestamp: Date.now(),
-      serverTime: Date.now(),
+    const message: ServerMessage = {
+      type: "NEW_AUDIO_SOURCE",
       source: audioSource,
     };
 
